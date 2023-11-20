@@ -53,7 +53,12 @@ function App(): JSX.Element {
     }
   };
 
-  const onSendPress = () => {
+  const onSendEventPress = () => {
+    RNAiqua.logEvent('app_launched');
+    RNAiqua.flush();
+  };
+
+  const onSendPushPress = () => {
     setIsSending(true);
     sendMessage({fcmToken: fcmToken, messageType: 'basic'}).then(resp => {
       setIsSending(false);
@@ -99,7 +104,7 @@ function App(): JSX.Element {
           opacity: !fcmToken || isSending ? 0.5 : 1,
         }}
         disabled={!fcmToken || isSending}
-        onPress={onSendPress}>
+        onPress={onSendPushPress}>
         {isSending ? (
           <ActivityIndicator animating />
         ) : (
@@ -107,6 +112,20 @@ function App(): JSX.Element {
             Send a Testing Push Notification
           </Text>
         )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{
+          marginTop: 24,
+          height: 48,
+          backgroundColor: '#eee',
+          borderRadius: 4,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 10,
+        }}
+        onPress={onSendEventPress}>
+        <Text style={{fontWeight: '700'}}>{`Send \`app_launched\` Event`}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
