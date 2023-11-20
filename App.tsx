@@ -5,114 +5,111 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+  Platform,
   SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
   Text,
-  useColorScheme,
-  View,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+import RNAiqua from '@appier/react-native-sdk';
+import messaging from '@react-native-firebase/messaging';
+import {sendMessage} from './src/fcmAPI';
+import config from './app.json';
 
 function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [fcmToken, setFcmToken] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  useEffect(() => {
+    console.log('init appier sdk');
+    RNAiqua.configure({
+      appId: config.appier.appId,
+      senderId: config.appier.fcm.senderId,
+      appGroup: config.appier.ios.appGroup,
+      isDev: config.appier.ios.isDev,
+    });
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    getFCMToken();
+  }, []);
+
+  const getFCMToken = async () => {
+    let registered = messaging().isDeviceRegisteredForRemoteMessages;
+    if (!registered) {
+      await messaging()
+        .registerDeviceForRemoteMessages()
+        .then(async resp => {
+          console.log(resp);
+          registered = true;
+        })
+        .catch(erorr => console.error(erorr));
+    }
+    if (registered) {
+      const token = await messaging().getToken();
+      console.log('FCM token:', token);
+      RNAiqua.setFCMToken(token);
+      setFcmToken(token);
+    }
+  };
+
+  const onSendPress = () => {
+    setIsSending(true);
+    sendMessage({fcmToken: fcmToken, messageType: 'basic'}).then(resp => {
+      setIsSending(false);
+      if (resp?.failure) {
+        const error = resp.results[0]?.error;
+        if (error === 'MismatchSenderId') {
+          Alert.alert(
+            'Error',
+            `It seems that the 'serverKey' and '${Platform.select({
+              ios: 'GoogleService-info.plist',
+              android: 'google-service.json',
+            })}' you have provided come from different FCM projects.\n\nPlease double-check the information you have provided.`,
+          );
+        }
+      }
+      if (resp?.name === 'SyntaxError') {
+        Alert.alert(
+          'Error',
+          "It seems that the 'serverKey' you have provided is in the wrong format. \n\nPlease double-check the information you have provided.",
+        );
+      }
+    });
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <Text style={{fontSize: 32, color: '#222'}}>Hello World</Text>
+      <TouchableOpacity
+        style={{
+          marginTop: 40,
+          height: 48,
+          backgroundColor: '#eee',
+          borderRadius: 4,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 10,
+          opacity: !fcmToken || isSending ? 0.5 : 1,
+        }}
+        disabled={!fcmToken || isSending}
+        onPress={onSendPress}>
+        {isSending ? (
+          <ActivityIndicator animating />
+        ) : (
+          <Text style={{fontWeight: '700'}}>
+            Send a Testing Push Notification
+          </Text>
+        )}
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
