@@ -3,14 +3,14 @@
   "displayName": "RN723",
   "appier": {
     "userId": "",
-    "appId": "",
+    "appId": "2f7225ca4957ed476d5b",
     "ios": {
-      "appGroup": "group.com.example.bundle.id.notification",
+      "appGroup": "group.com.godo.myapp.gdgrqrd.notification",
       "isDev": false
     },
     "fcm": {
-      "senderId": "",
-      "serverKey": ""
+      "senderId": "824227740504",
+      "serverKey": "AAAAv-fNO1g:APA91bGJ4FNRFCLV0DmwIMl5S1h5g58A7KwxtMeRIbJOtWQJZ-iM-NSh1_Y6FnscbyLvRjU1ODW1W8GzFfkke2UHw2XFRVzhjH4ToIKlwalJVl5eCKPJNyQfC75NxVxAknsXcS7Myv90"
     }
   }
 }

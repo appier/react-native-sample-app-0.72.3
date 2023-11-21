@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>AppierAppGroup</key>
-	<string>group.com.example.bundle.id.notification</string>
+	<string>group.com.godo.myapp.gdgrqrd.notification</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
