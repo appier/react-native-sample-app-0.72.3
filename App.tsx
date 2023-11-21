@@ -22,6 +22,7 @@ import config from './app.json';
 function App(): JSX.Element {
   const [fcmToken, setFcmToken] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   useEffect(() => {
     console.log('init appier sdk');
     RNAiqua.configure({
@@ -83,6 +84,35 @@ function App(): JSX.Element {
     });
   };
 
+  const onGetInappPress = () => {
+    const appid = config?.appier?.appId;
+    const userId = config?.appier?.userId;
+    if (!userId || !appid) {
+      Alert.alert('userId or appid is null');
+      return;
+    }
+    const url = `https://users.quantumgraph.com/aiq-data?appId=${appid}&userId=${userId}&firstTime=0&device=ios&inapp=1`;
+    setIsFetching(true);
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        console.log('result:', data);
+        Alert.alert('SUCCESS', JSON.stringify(data));
+      })
+      .catch(error => {
+        console.error('Exception catched:', error);
+        Alert.alert('ERROR', JSON.stringify(error));
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
+  };
+
   return (
     <SafeAreaView
       style={{
@@ -116,7 +146,7 @@ function App(): JSX.Element {
 
       <TouchableOpacity
         style={{
-          marginTop: 24,
+          marginTop: 16,
           height: 48,
           backgroundColor: '#eee',
           borderRadius: 4,
@@ -126,6 +156,25 @@ function App(): JSX.Element {
         }}
         onPress={onSendEventPress}>
         <Text style={{fontWeight: '700'}}>{`Send \`app_launched\` Event`}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        disabled={isFetching}
+        style={{
+          marginTop: 16,
+          height: 48,
+          backgroundColor: '#eee',
+          borderRadius: 4,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 10,
+        }}
+        onPress={onGetInappPress}>
+        {isFetching ? (
+          <ActivityIndicator animating />
+        ) : (
+          <Text style={{fontWeight: '700'}}>{`fetch in-app`}</Text>
+        )}
       </TouchableOpacity>
     </SafeAreaView>
   );

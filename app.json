@@ -2,6 +2,7 @@
   "name": "RN723",
   "displayName": "RN723",
   "appier": {
+    "userId": "",
     "appId": "",
     "ios": {
       "appGroup": "group.com.example.bundle.id.notification",
